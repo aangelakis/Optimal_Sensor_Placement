@@ -9,8 +9,8 @@ def main():
     # This is the WDN of Mohos, a village in Hersonissos, Crete, Greece
     # You can change the path and run the algorithms in your own topologies.
     
-    # data = gpd.read_file('network/diktio.shp')
-    data = gpd.read_file('limnes/limnes.shp')
+    data = gpd.read_file('network/diktio.shp')
+    # data = gpd.read_file('limnes/limnes.shp')
     # data = gpd.read_file('GRC_wat/GRC_water_lines_dcw.shp')
     data['points'] = data['geometry'].apply(extract_coords)
 
