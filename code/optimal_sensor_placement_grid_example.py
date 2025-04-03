@@ -1,16 +1,6 @@
-# Algorithms written and developed by Alexandros Angelakis, University of Crete, ICS-FORTH, angelakis@ics.forth.gr
-# supervised by Yannis Pantazis, IACM-FORTH, pantazis@iacm.forth.gr
-
-
-import utilities as utl
-import geopandas as gpd
+from utilities import * 
 import matplotlib.pyplot as plt
 import networkx as nx
-import math
-
-
-def main():
-    test_grid_graph()
 
 
 def test_grid_graph():
@@ -18,7 +8,7 @@ def test_grid_graph():
     g = create_grid_graph(max_x=500, max_y=250, x_step=25, y_step=25)
     g1 = nx.convert_node_labels_to_integers(g)
     g2 = nx.convert_node_labels_to_integers(g)
-    g_positions = utl.find_node_positions(g)
+    g_positions = find_node_positions(g)
 
     print(g2)
 
@@ -27,29 +17,29 @@ def test_grid_graph():
     sensor_range = 73
 
     # Insert new nodes and edges if it is needed
-    utl.add_new_nodes_edges_int_graph(g, g_positions, sensor_range)
-    utl.add_new_nodes_edges_graph(g2, g_positions, sensor_range)
+    add_new_nodes_edges_int_graph(g, g_positions, sensor_range)
+    add_new_nodes_edges_graph(g2, g_positions, sensor_range)
 
     # The starting node to run the BFS algorithm with.
     # Change it if you want to run the algorithm with a different starting node.
     start = 0
 
     # Initializations after the addition of new nodes/edges
-    g2_pos = utl.find_node_positions(g)
-    utl.initialize_graph_without_new(g2)
-    utl.find_length(g2, g2_pos, start)
+    g2_pos = find_node_positions(g)
+    initialize_graph_without_new(g2)
+    find_length(g2, g2_pos, start)
 
     # Run the coverage algorithm on our graph.
-    sensors, sensor_coverage = utl.sensors_coverage_problem(g2, start, sensor_range)
+    sensors, sensor_coverage = sensors_coverage_problem(g2, start, sensor_range)
 
     print('number of sensors after coverage algorithm: ', len(sensors))
-    utl.print_graph_with_sensors_grid(g2, start, 0, title='graph with sensors, with the coverage algorithm')
+    print_graph_with_sensors_grid(g2, start, 0, title='graph with sensors, with the coverage algorithm')
 
     # Run the leakage algorithm on our graph.
-    utl.sensors_leakage_problem(g2, sensor_coverage, sensor_range)
+    sensors_leakage_problem(g2, sensor_coverage, sensor_range)
 
     print('number of sensors after leakage algorithm: ', len(sensor_coverage))
-    utl.print_graph_with_sensors_grid(g2, start, 0, title='graph with sensors, with the leakage algorithm')
+    print_graph_with_sensors_grid(g2, start, 0, title='graph with sensors, with the leakage algorithm')
 
 
 # Function that creates a grid graph with size max_x,max_y and nodes every x_step for the x axis and y_step for the y axis.
@@ -86,5 +76,6 @@ def create_grid_graph(max_x, max_y, x_step, y_step):
 
 
 if __name__ == '__main__':
-    main()
+    # Run the test for the grid graph
+    test_grid_graph()
     plt.show()

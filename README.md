@@ -1,2 +1,5 @@
 # Created by Alexandros Angelakis, University of Crete, ICS-FORTH, angelakis@ics.forth.gr supervised by Yannis Pantazis, IACM-FORTH, pantazis@iacm.forth.gr.
-This repo is about two algorithms that we developed, one that optimally places sensors on a water distributed network to cover it all and an extension of it, that puts more sensors so every edge of the graph is accessed by at least two sensors. This is useful for detecting any water leaks a water pipe might have. More information about the algorithms you can find in our notebooks, the code is also given. You can also read our paper (TBA) that explains the algorithms in depth.
+This repository presents two algorithms developed for optimal sensor placement in water distribution networks. The first algorithm ensures full network coverage by strategically positioning sensors, while the extended version enhances reliability by placing additional sensors so that every edge in the graph is monitored by at least two sensors. This redundancy is particularly useful for detecting potential leaks in water pipes.
+
+Detailed descriptions and demonstrations of the algorithms are provided in the accompanying notebooks. The full implementation is also included in the repository. An optimized version of the algorithms—designed for significantly faster execution, especially on large-scale graphs—will be released soon.
+
