@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import math
 from tqdm import tqdm
+from collections import deque
 
 
 def gdf_to_nx(gdf_network):
@@ -113,8 +114,13 @@ def find_length(G, pos, start):
 
         for next in neighbours:
             if (next not in explored):
+                weight = round(math.dist(pos[node], pos[next]), 3)
+                if weight < 1:
+                    # Convert meters to mm if the weight is less than 1 m
+                    weight = weight * 1000
+
                 # Calculate the length of the edge
-                G.edges[(node, next)]['length'] = round(math.dist(pos[node], pos[next]), 3)
+                G.edges[(node, next)]['length'] = weight
                 # Add the next node to the queue
                 queue.append(next)
 
@@ -324,76 +330,57 @@ def initialize_graph(graph):
 
 
 def sensors_coverage_problem(graph, start, sensor_range):
-    """
-    This function is used to solve the sensors coverage problem using the BFS algorithm.
-
-    Parameters
-    ----------
-    graph : NetworkX Graph
-        The graph to solve the sensors coverage problem on
-    start : int
-        The starting node of the graph
-    sensor_range : float
-        The range of the sensors
-
-    Returns
-    -------
-    sensors : list
-        The list of sensors
-    sensor_coverage : dict
-        The dictionary of the sensors and their coverage
-    """
-    explored = []
-    queue = [start]
+    explored = set()
+    queue = deque([start])
     lengths = {}
     sensor_coverage = {}
     sensors = []
     pbar = tqdm(total=graph.number_of_nodes())
+
     while queue:
-        node = queue.pop(0)
-        while node in queue:
-            queue.remove(node)
+        node = queue.popleft()
 
-        if node not in explored:
-            explored.append(node)
-            neighbours = (list(graph.adj.items())[node])[1]
+        if node in explored:
+            continue
+        explored.add(node)
 
-        # Create a temporary dictionary to store the lengths of the edges
+        neighbours = graph.adj[node]
         tmp = {}
-        node_is_sensor = 0
-        for next in neighbours:
-            if next not in explored:
-                found = 0
-                tmp[(node, next)] = graph.edges[node, next]['length']
-                for n in lengths:  # Searching in the lengths to find the previous length in the path to add it
-                    for i in range(
-                            graph.number_of_nodes()):  # Don't add all the lengths found, only one is required(if found)
-                        if (i, node) in lengths[n]:
-                            if found == 0:
-                                tmp[(node, next)] += lengths[n][(i, node)]
-                                found = 1
-                                break
+        node_is_sensor = False
 
-                    if found == 1:
-                        break
+        for nxt in neighbours:
+            if nxt in explored:
+                continue
 
-                # Make the starting node a sensor and move on
-                if len(lengths) == 0:
-                    if node not in sensors:
-                        sensors.append(node)
-                        node_is_sensor = 1
-                        graph.nodes[node]['sensor'] = 'yes'
+            edge_length = graph.edges[node, nxt]['length']
+            total_length = edge_length
 
-                if tmp[(node, next)] > sensor_range:
-                    if graph.edges[node, next]['covered'] == 'no':
-                        if node not in sensors:
-                            graph.nodes[node]['sensor'] = 'yes'
-                            sensors.append(node)
-                            node_is_sensor = 1
+            # Check previous paths for cumulative length
+            for prev_node, path_lengths in lengths.items():
+                prev_edge = (prev_node, node)
+                if prev_edge in path_lengths:
+                    total_length += path_lengths[prev_edge]
+                    break  # Only need one path
 
-                queue.append(next)
+            tmp[(node, nxt)] = total_length
+
+            # Make starting node a sensor
+            if not lengths and node not in sensors:
+                graph.nodes[node]['sensor'] = 'yes'
+                sensors.append(node)
+                node_is_sensor = True
+
+            if total_length > sensor_range and graph.edges[node, nxt]['covered'] == 'no':
+                if node not in sensors:
+                    graph.nodes[node]['sensor'] = 'yes'
+                    sensors.append(node)
+                    node_is_sensor = True
+
+            queue.append(nxt)
+
         if node_is_sensor:
             sensor_coverage[node] = find_covered_edges_from_sensor(graph, node, sensor_range)
+
         lengths[node] = tmp
         pbar.update(1)
 
@@ -418,52 +405,46 @@ def find_covered_edges_from_sensor(graph, sensor, sensor_range):
     node_coverage : list
         The list of edges that can be covered from the sensor
     """
-
-    explored = []
-    queue = [sensor]
+    explored = set()
+    queue = deque([sensor])
     lengths = {}
     node_coverage = []
-    sensor_leakage_paths = {}
 
-    # Iterate over the nodes in the graph
     while queue:
-        node = queue.pop(0)
-        while node in queue:
-            queue.remove(node)
+        node = queue.popleft()
 
-        if node not in explored:
-            explored.append(node)
-            neighbours = (list(graph.adj.items())[node])[1]
+        if node in explored:
+            continue
+        explored.add(node)
 
-        # Create a temporary dictionary to store the lengths of the edges
+        neighbours = graph.adj[node]
         tmp = {}
-        for next in neighbours:
-            prev = -1
-            if next not in explored:
-                found = 0
-                tmp[(node, next)] = graph.edges[node, next]['length']
-                # Search in the lengths to find the previous length in the path to add it
-                for n in lengths:
-                    for i in range(
-                            graph.number_of_nodes()):  # Don't add all the lengths found, only one is required(if found)
-                        if (i, node) in lengths[n]:
-                            if found == 0:
-                                tmp[(node, next)] += lengths[n][(i, node)]
-                                found = 1
-                                prev = i
 
-                    if found == 1:
-                        break
+        for nxt in neighbours:
+            if nxt in explored:
+                continue
 
-                # If the length of the edge is less or equal to the sensor range
-                if tmp[(node, next)] <= sensor_range:
-                    # Add the edge to the list of covered edges
-                    node_coverage.append((node, next))
-                    # Mark the edge as covered
-                    graph.edges[node, next]['covered'] = 'yes'
+            edge_length = graph.edges[node, nxt]['length']
+            total_length = edge_length
+            found = False
 
-                queue.append(next)
+            for prev_node, path_lengths in lengths.items():
+                prev_edge = (prev_node, node)
+                if prev_edge in path_lengths:
+                    total_length += path_lengths[prev_edge]
+                    found = True
+                    break  # Only need one valid previous path
+
+            tmp[(node, nxt)] = total_length
+
+            if total_length <= sensor_range:
+                node_coverage.append((node, nxt))
+                graph.edges[node, nxt]['covered'] = 'yes'
+
+            queue.append(nxt)
+
         lengths[node] = tmp
+
     return node_coverage
 
 
