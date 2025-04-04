@@ -107,7 +107,7 @@ Contributions are welcome! Please:
 
 ## 📄 License
 
-MIT License © [Alexandros Angelakis](https://github.com/aangelakis)
+MIT License © [Alexandros Angelakis](https://www.linkedin.com/in/alexandrosangelakis/)
 
 ---
 
