@@ -6,7 +6,7 @@ Two core algorithms are presented:
 - The **base algorithm** ensures full network coverage by strategically positioning sensors within a defined range.
 - The **extended algorithm** enhances reliability by placing additional sensors so that every edge in the graph is monitored by at least two sensors. This redundancy is particularly useful for detecting potential leaks in water pipes.
 
-Detailed descriptions and demonstrations of the algorithms are provided in the accompanying Jupyter notebook. An optimized version of the algorithms—designed for significantly faster execution, especially on large-scale graphs—will be released soon.
+Detailed descriptions and demonstrations of the algorithms are provided in the accompanying Jupyter notebook.
 
 ---
 
